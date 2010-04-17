@@ -12,6 +12,7 @@
  * Depends:
  *   jquery.ui.core.js
  *   jquery.ui.widget.js
+ *   jquery.ui.button.js
  */
 (function( $ ) {
 
@@ -20,6 +21,10 @@ var checkboxId = 0;
 $.widget( "ui.checkbox", {
 
 	_create: function() {
+		var self = this,
+			options = this.options;
+
+		this.element.checked = options.checked = options.checked || false;
 
 		// look for label as container of checkbox
 		this.labelElement = this.element.closest( "label" );
@@ -43,9 +48,22 @@ $.widget( "ui.checkbox", {
 		// wrap the checkbox in a new div
 		// move the checkbox's label inside the new div
 		this.checkboxElement = this.element.wrap( "<div></div>" ).parent()
-			.addClass("ui-checkbox")
-			.append(this.labelElement);
+			.addClass( "ui-checkbox ui-widget" )
+			.append( this.labelElement )
+			.bind( "mouseup.checkbox" , function() {
+				self._setOption( "checked", !options.checked) ;
+			});
 
+		// add a button for the checkbox
+		this.element.hide();
+		this.checkboxElement.prepend( "<button type='button'></button>" );
+		this.checkboxButton = this.checkboxElement.children( ":button" ).button( {
+			icons: {
+				primary: ( options.checked ? 'ui-icon-check' : 'ui-icon-none' )
+			},
+			text: false,
+			clickableElement: this.labelElement
+ 		} );
 	},
 
 	widget: function() {
@@ -66,6 +84,11 @@ $.widget( "ui.checkbox", {
 				.attr( "disabled", value );
 			this.checkboxElement
 				[ value ? "addClass" : "removeClass" ]( "ui-checkbox-disabled" );
+		} else if ( key === "checked" ) {
+			this.element.checked = value;
+			this.checkboxButton.button( 'option', 'icons', {
+				primary: ( value ? 'ui-icon-check' : '')
+			});
 		}
 		
 		$.Widget.prototype._setOption.apply( this, arguments );
