@@ -60,6 +60,8 @@ $.widget( "ui.button", {
 		this.hasTitle = !!this.buttonElement.attr( "title" );
 
 		var self = this,
+			buElm = this.buttonElement,
+			evtTarget = this.buttonElement,
 			options = this.options,
 			toggleButton = this.type === "checkbox" || this.type === "radio",
 			hoverClass = "ui-state-hover" + ( !toggleButton ? " ui-state-active" : "" ),
@@ -72,31 +74,35 @@ $.widget( "ui.button", {
 		if ( this.element.is( ":disabled" ) ) {
 			options.disabled = true;
 		}
+		
+		if ( options.clickableElement ) {
+		    evtTarget = evtTarget.add(options.clickableElement);
+		}
 
 		this.buttonElement
 			.addClass( baseClasses )
-			.attr( "role", "button" )
-			.bind( "mouseenter.button", function() {
+			.attr( "role", "button" );
+		evtTarget.bind( "mouseenter.button", function() {
 				if ( options.disabled ) {
 					return;
 				}
-				$( this ).addClass( "ui-state-hover" );
-				if ( this === lastActive ) {
-					$( this ).addClass( "ui-state-active" );
+				buElm.addClass( "ui-state-hover" );
+				if ( buElm === lastActive ) {
+					buElm.addClass( "ui-state-active" );
 				}
 			})
 			.bind( "mouseleave.button", function() {
 				if ( options.disabled ) {
 					return;
 				}
-				$( this ).removeClass( hoverClass );
+				buElm.removeClass( hoverClass );
 			})
 			.bind( "focus.button", function() {
 				// no need to check disabled, focus won't be triggered anyway
-				$( this ).addClass( focusClass );
+				buElm.addClass( focusClass );
 			})
 			.bind( "blur.button", function() {
-				$( this ).removeClass( focusClass );
+				buElm.removeClass( focusClass );
 			});
 
 		if ( toggleButton ) {
@@ -106,58 +112,58 @@ $.widget( "ui.button", {
 		}
 
 		if ( this.type === "checkbox" ) {
-			this.buttonElement.bind( "click.button", function() {
+			evtTarget.bind( "click.button", function() {
 				if ( options.disabled ) {
 					return false;
 				}
-				$( this ).toggleClass( "ui-state-active" );
+				buElm.toggleClass( "ui-state-active" );
 				self.buttonElement.attr( "aria-pressed", self.element[0].checked );
 			});
 		} else if ( this.type === "radio" ) {
-			this.buttonElement.bind( "click.button", function() {
+			evtTarget.bind( "click.button", function() {
 				if ( options.disabled ) {
 					return false;
 				}
-				$( this ).addClass( "ui-state-active" );
+				buElm.addClass( "ui-state-active" );
 				self.buttonElement.attr( "aria-pressed", true );
 
 				var radio = self.element[ 0 ];
 				radioGroup( radio )
 					.not( radio )
 					.map(function() {
-						return $( this ).button( "widget" )[ 0 ];
+						return buElm.button( "widget" )[ 0 ];
 					})
 					.removeClass( "ui-state-active" )
 					.attr( "aria-pressed", false );
 			});
 		} else {
-			this.buttonElement
-				.bind( "mousedown.button", function() {
+			evtTarget.bind( "mousedown.button", function(evt) {
 					if ( options.disabled ) {
 						return false;
 					}
-					$( this ).addClass( "ui-state-active" );
+					buElm.addClass( "ui-state-active" );
 					lastActive = this;
 					$( document ).one( "mouseup", function() {
 						lastActive = null;
 					});
+					evt.preventDefault();
 				})
 				.bind( "mouseup.button", function() {
 					if ( options.disabled ) {
 						return false;
 					}
-					$( this ).removeClass( "ui-state-active" );
+					buElm.removeClass( "ui-state-active" );
 				})
 				.bind( "keydown.button", function(event) {
 					if ( options.disabled ) {
 						return false;
 					}
 					if ( event.keyCode == $.ui.keyCode.SPACE || event.keyCode == $.ui.keyCode.ENTER ) {
-						$( this ).addClass( "ui-state-active" );
+						buElm.addClass( "ui-state-active" );
 					}
 				})
 				.bind( "keyup.button", function() {
-					$( this ).removeClass( "ui-state-active" );
+					buElm.removeClass( "ui-state-active" );
 				});
 
 			if ( this.buttonElement.is("a") ) {
